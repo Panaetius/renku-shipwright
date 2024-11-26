@@ -1,0 +1,21 @@
+apiVersion: shipwright.io/v1beta1
+kind: Build
+metadata:
+  name: buildpack-renku-build
+spec:
+  source:
+    type: Git
+    git: 
+      url: https://github.com/Panaetius/emptyrepo.git
+  paramValues:
+    - name: dependencies
+      value: |
+        torch
+        numpy
+        pandas
+  strategy:
+    name: buildpacks-v3-renku-python
+    kind: ClusterBuildStrategy
+  output:
+    image: docker.io/renku/test-shipwright-python:latest
+    pushSecret: renku-dockerhub-credentials
