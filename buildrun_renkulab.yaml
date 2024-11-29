@@ -1,0 +1,12 @@
+apiVersion: shipwright.io/v1beta1
+kind: BuildRun
+metadata:
+  name: buildpack-renku-renkulab
+  labels:
+    build.shipwright.io/generation: "4"
+spec:
+  build:
+    name: buildpack-renku-build-renkulab
+  output:
+    image: docker.io/renku/test-shipwright-python:test2
+ 

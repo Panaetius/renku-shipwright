@@ -1,0 +1,23 @@
+apiVersion: shipwright.io/v1beta1
+kind: Build
+metadata:
+  name: buildpack-renku-build-renkulab
+spec:
+  source:
+    type: Git
+    git: 
+      url: https://gitlab.renkulab.io/nathan.guigoz/intro-geophy-teaching-tomasz.git
+  paramValues:
+    - name: procfile
+      value: |
+        web_renkulab: jupyter lab --no-browser --ip=0.0.0.0 --NotebookApp.token="" --NotebookApp.password="" --NotebookApp.base_url=$RENKU_BASE_URL_PATH
+        web: jupyter lab --no-browser --ip=0.0.0.0 --NotebookApp.token="" --NotebookApp.password=""
+        bash: bash
+    - name: run_image
+      value: "renku/renkulab-py:latest"
+  strategy:
+    name: buildpacks-v3-renku-python
+    kind: ClusterBuildStrategy
+  output:
+    image: docker.io/renku/test-shipwright-renkuklab:latest
+    pushSecret: renku-dockerhub-credentials

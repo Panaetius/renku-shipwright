@@ -11,15 +11,23 @@ spec:
     - name: platform-api-version
       description: The referenced version is the minimum version that all relevant buildpack implementations support.
       default: "0.12"
-    - name: dependencies
-      description: The python dependencies to install
+    - name: pip_dependencies
+      description: The python pip dependencies to install
       type: string
-    - name: procfile
-      description: Procfile to use for entrypoint
+      default: ""
+    - name: conda_dependencies
+      description: The python conda dependencies to install
       type: string
+      default: ""
+    - description: Procfile to use for entrypoint
+      name: procfile
+      type: string
+    - name: run_image
+      description: The run/base image to use
+      type: string
+      default: "docker.io/panaetius123/buildpack-base:latest4"
   steps:
     - name: build-and-push
-      # image: docker.io/paketobuildpacks/builder-jammy-base:latest
       image: docker.io/panaetius123/renku-builder:latest
       env: 
         - name: CNB_PLATFORM_API
@@ -28,10 +36,14 @@ spec:
           value: $(params.shp-source-context)
         - name: PARAM_OUTPUT_IMAGE
           value: $(params.shp-output-image)
-        - name: PARAM_DEPENDENCIES
-          value: $(params.dependencies)
+        - name: PARAM_PIP_DEPENDENCIES
+          value: $(params.pip_dependencies)
+        - name: PARAM_CONDA_DEPENDENCIES
+          value: $(params.conda_dependencies)
         - name: PARAM_PROCFILE
           value: $(params.procfile)
+        - name: PARAM_RUN_IMAGE
+          value: $(params.run_image)
       command:
         - /bin/bash
       args:
@@ -66,10 +78,21 @@ spec:
               echo -n "$value" > "$path"
             fi
           done
-          echo "$PARAM_DEPENDENCIES" > "$PARAM_SOURCE_CONTEXT"/requirements.txt
+
+          if [ ! -z "$PARAM_PIP_DEPENDENCIES" ]; then
+            echo "creating requirements.txt"
+            echo "$PARAM_PIP_DEPENDENCIES" > "$PARAM_SOURCE_CONTEXT"/requirements.txt
+          fi
+
+          if [ ! -z "$PARAM_CONDA_DEPENDENCIES" ]; then
+            echo "creating environment.yml"
+            echo "$PARAM_CONDA_DEPENDENCIES" > "$PARAM_SOURCE_CONTEXT"/environment.yml
+          fi
+
+          echo "creating procfile"
           echo "$PARAM_PROCFILE" > "$PARAM_SOURCE_CONTEXT"/Procfile
 
-          LAYERS_DIR=/tmp/.shp/layers
+          LAYERS_DIR=/layers
           CACHE_DIR=/tmp/.shp/cache
 
           mkdir -p "$CACHE_DIR" "$LAYERS_DIR"
@@ -79,7 +102,7 @@ spec:
           }
 
           announce_phase "ANALYZING"
-          /cnb/lifecycle/analyzer -layers="$LAYERS_DIR" "${PARAM_OUTPUT_IMAGE}"
+          /cnb/lifecycle/analyzer -log-level debug -layers="$LAYERS_DIR" -run-image "$PARAM_RUN_IMAGE" "${PARAM_OUTPUT_IMAGE}"
 
           announce_phase "DETECTING"
           /cnb/lifecycle/detector -app="${PARAM_SOURCE_CONTEXT}" -layers="$LAYERS_DIR"
