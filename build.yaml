@@ -1,7 +1,8 @@
 apiVersion: shipwright.io/v1beta1
 kind: Build
 metadata:
-  name: buildpack-renku-build
+  name: buildpack-renku-build-ci
+  namespace: ci-renku-3854
 spec:
   source:
     type: Git

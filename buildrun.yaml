@@ -2,6 +2,7 @@ apiVersion: shipwright.io/v1beta1
 kind: BuildRun
 metadata:
   name: buildpack-renku-python-env-3
+  namespace: ci-renku-3854
 spec:
   build:
-    name: buildpack-renku-build
+    name: buildpack-renku-build-ci
